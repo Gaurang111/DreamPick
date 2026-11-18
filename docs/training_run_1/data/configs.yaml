@@ -1,0 +1,167 @@
+# `defaults` and `debug` below are copied unmodified from NM512/dreamerv3-torch's
+# configs.yaml (MIT License). The other suite-specific sections (dmc_vision, atari100k,
+# crafter, minecraft, memorymaze, ...) from upstream were dropped since we only vendored
+# the files needed for our own env, not those suites' env wrappers/dependencies.
+#
+# `so101_pick_cube` at the bottom is new, for our SO101PickCube Gymnasium env.
+
+defaults:
+
+  logdir: null
+  traindir: null
+  evaldir: null
+  offline_traindir: ''
+  offline_evaldir: ''
+  seed: 0
+  deterministic_run: False
+  steps: 1e6
+  parallel: False
+  eval_every: 1e4
+  eval_episode_num: 10
+  log_every: 1e4
+  reset_every: 0
+  device: 'cuda:0'
+  compile: True
+  precision: 32
+  debug: False
+  video_pred_log: True
+
+  # Environment
+  task: 'dmc_walker_walk'
+  size: [64, 64]
+  envs: 1
+  action_repeat: 2
+  time_limit: 1000
+  grayscale: False
+  prefill: 2500
+  reward_EMA: True
+
+  # Model
+  dyn_hidden: 512
+  dyn_deter: 512
+  dyn_stoch: 32
+  dyn_discrete: 32
+  dyn_rec_depth: 1
+  dyn_mean_act: 'none'
+  dyn_std_act: 'sigmoid2'
+  dyn_min_std: 0.1
+  grad_heads: ['decoder', 'reward', 'cont']
+  units: 512
+  act: 'SiLU'
+  norm: True
+  encoder:
+    {mlp_keys: '$^', cnn_keys: 'image', act: 'SiLU', norm: True, cnn_depth: 32, kernel_size: 4, minres: 4, mlp_layers: 5, mlp_units: 1024, symlog_inputs: True}
+  decoder:
+    {mlp_keys: '$^', cnn_keys: 'image', act: 'SiLU', norm: True, cnn_depth: 32, kernel_size: 4, minres: 4, mlp_layers: 5, mlp_units: 1024, cnn_sigmoid: False, image_dist: mse, vector_dist: symlog_mse, outscale: 1.0}
+  actor:
+    {layers: 2, dist: 'normal', entropy: 3e-4, unimix_ratio: 0.01, std: 'learned', min_std: 0.1, max_std: 1.0, temp: 0.1, lr: 3e-5, eps: 1e-5, grad_clip: 100.0, outscale: 1.0}
+  critic:
+    {layers: 2, dist: 'symlog_disc', slow_target: True, slow_target_update: 1, slow_target_fraction: 0.02, lr: 3e-5, eps: 1e-5, grad_clip: 100.0, outscale: 0.0}
+  reward_head:
+    {layers: 2, dist: 'symlog_disc', loss_scale: 1.0, outscale: 0.0}
+  cont_head:
+    {layers: 2, loss_scale: 1.0, outscale: 1.0}
+  dyn_scale: 0.5
+  rep_scale: 0.1
+  kl_free: 1.0
+  weight_decay: 0.0
+  unimix_ratio: 0.01
+  initial: 'learned'
+
+  # Training
+  batch_size: 16
+  batch_length: 64
+  train_ratio: 512
+  pretrain: 100
+  model_lr: 1e-4
+  opt_eps: 1e-8
+  grad_clip: 1000
+  dataset_size: 1000000
+  opt: 'adam'
+
+  # Behavior.
+  discount: 0.997
+  discount_lambda: 0.95
+  imag_horizon: 15
+  imag_gradient: 'dynamics'
+  imag_gradient_mix: 0.0
+  eval_state_mean: False
+
+  # Exploration
+  expl_behavior: 'greedy'
+  expl_until: 0
+  expl_extr_scale: 0.0
+  expl_intr_scale: 1.0
+  disag_target: 'stoch'
+  disag_log: True
+  disag_models: 10
+  disag_offset: 1
+  disag_layers: 4
+  disag_units: 400
+  disag_action_cond: False
+
+debug:
+  debug: True
+  pretrain: 1
+  prefill: 1
+  batch_size: 10
+  batch_length: 20
+
+so101_pick_cube:
+  task: 'so101_pick_cube'
+  # Our env already controls at 20Hz (frame_skip=25 @ 0.002s physics timestep)
+  # internally, so no extra action_repeat on top of that.
+  action_repeat: 1
+  time_limit: 200
+  size: [64, 64]  # both wrist_image and overhead_image are natively 64x64
+  envs: 1
+  reward_stage: 'reach'  # reach | grasp | lift - passed through to SO101PickCubeEnv
+  prefill: 1000
+  eval_episode_num: 3
+  # Gradient updates per env step (upstream default 512). Halved after the
+  # first real run thermal-throttled this laptop GPU at 512.
+  train_ratio: 256
+  # cnn_keys matches both wrist_image and overhead_image (MultiEncoder
+  # concatenates matched keys along the channel axis: 3+3=6 input channels).
+  encoder: {mlp_keys: 'joint_pos', cnn_keys: '.*_image$'}
+  decoder: {mlp_keys: 'joint_pos', cnn_keys: '.*_image$'}
+
+  # Save latest.pt every this many env steps, independent of (and much more
+  # frequent than) eval_every - so a crash/laptop sleep/thermal issue never
+  # loses more than a few minutes of training. Resume is automatic: rerun
+  # with the same --logdir and it picks up from latest.pt + saved episodes.
+  checkpoint_every: 1000
+  # Save a numbered, un-overwritten world-model-only snapshot to milestones/
+  # every this many steps, so generate_progression_video.py can show the same
+  # episode reconstructed by each one in sequence - i.e. watching it learn.
+  # World-model-only is ~105MB each (26M params, fp32, no optimizer/actor/
+  # critic state) - budget disk space accordingly for long runs (e.g. 5000
+  # gives ~20 milestones / ~2GB over a 100k-step run at this GPU's measured
+  # throughput). Raise this if disk space is tight.
+  milestone_every: 5000
+  # How often (env steps) to log the full image reconstruction to TensorBoard
+  # (train_openl) - separate from and much less frequent than log_every
+  # (scalar metrics), since it requires an extra encode+decode of both camera
+  # views. joint_pos_trace.bin already tracks progression continuously and
+  # cheaply (see generate_joint_pos_timelapse_video.py), so this doesn't need
+  # to run often - it's just an occasional visual sanity check.
+  video_pred_every: 25000
+  # Pause training when the GPU hits this temperature (C), resume once it
+  # drops back below the lower threshold (hysteresis avoids flapping right
+  # at the boundary). Checked at most every thermal_check_interval_s.
+  thermal_pause_c: 85
+  thermal_resume_c: 80
+  thermal_check_interval_s: 30
+  # Early stopping: after each eval, compare the best eval_return in the last
+  # early_stop_patience evals against the eval_return from one eval before
+  # that window. Stop if the relative improvement is under
+  # early_stop_min_improvement. Set patience to 0 to disable (always run the
+  # full --steps). With eval_every=1e4 (default), patience=5 means roughly
+  # 50k steps of no real progress before stopping.
+  early_stop_patience: 5
+  early_stop_min_improvement: 0.02
+  # Curriculum warm-start (see train_curriculum.py): path to a previous
+  # stage's latest.pt to seed this run's weights from, only used if this
+  # logdir doesn't already have its own latest.pt (i.e. a fresh run, not a
+  # same-stage resume). Empty string = always start from random init.
+  init_weights: ''

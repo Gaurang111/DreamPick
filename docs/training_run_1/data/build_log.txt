@@ -1,0 +1,4 @@
+[20:55:30] === data
+[20:55:31] copied metrics, console log and config
+[20:55:31] wrote policy_test.png
+[20:55:32] wrote cube_dragged_toward_base.png

@@ -1,0 +1,90 @@
+[18:12:42] === data
+[18:12:42] copied metrics, console log and config
+[18:12:42] === curves
+[18:12:43] wrote learning_curves.png
+[18:12:43] === evaluate
+[18:12:43] running: policy evaluation (deterministic actions)
+[18:14:46]   done in 123s
+[18:14:46] running: policy evaluation (sampled actions)
+[18:16:51]   done in 124s
+[18:16:51] === views
+[18:16:58] wrote random_policy_three_cameras.mp4
+Encoder CNN shapes: {'overhead_image': (64, 64, 3), 'wrist_image': (64, 64, 3)}
+Encoder MLP shapes: {'joint_pos': (6,)}
+Decoder CNN shapes: {'overhead_image': (64, 64, 3), 'wrist_image': (64, 64, 3)}
+Decoder MLP shapes: {'joint_pos': (6,)}
+C:\Users\goran\PycharmProjects\so101-world-model\src\dreamer\tools.py:755: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  self._scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+Optimizer model_opt has 26209420 variables.
+Optimizer actor_opt has 1056780 variables.
+Optimizer value_opt has 1181439 variables.
+[18:17:06] wrote reach_policy_three_cameras.mp4
+Encoder CNN shapes: {'overhead_image': (64, 64, 3), 'wrist_image': (64, 64, 3)}
+Encoder MLP shapes: {'joint_pos': (6,)}
+Decoder CNN shapes: {'overhead_image': (64, 64, 3), 'wrist_image': (64, 64, 3)}
+Decoder MLP shapes: {'joint_pos': (6,)}
+Optimizer model_opt has 26209420 variables.
+Optimizer actor_opt has 1056780 variables.
+Optimizer value_opt has 1181439 variables.
+[18:17:13] wrote grasp_policy_three_cameras.mp4
+Encoder CNN shapes: {'overhead_image': (64, 64, 3), 'wrist_image': (64, 64, 3)}
+Encoder MLP shapes: {'joint_pos': (6,)}
+Decoder CNN shapes: {'overhead_image': (64, 64, 3), 'wrist_image': (64, 64, 3)}
+Decoder MLP shapes: {'joint_pos': (6,)}
+Optimizer model_opt has 26209420 variables.
+Optimizer actor_opt has 1056780 variables.
+Optimizer value_opt has 1181439 variables.
+[18:17:20] wrote lift_policy_three_cameras.mp4
+[18:17:21] wrote all_policies_side_by_side.mp4
+[18:17:21] === eye
+[18:17:23] wrote reach_what_the_model_saw_early_to_late.mp4
+[18:17:25] wrote grasp_what_the_model_saw_early_to_late.mp4
+[18:17:27] wrote lift_what_the_model_saw_early_to_late.mp4
+[18:17:27] === worldmodel
+[18:17:27] running: generate_dream_video.py [reach]
+[18:17:48]   done in 21s
+[18:17:48] running: generate_progression_video.py [reach]
+[18:18:10]   done in 23s
+[18:18:10] running: generate_imagined_arm_video.py [reach]
+[18:18:26]   done in 16s
+[18:18:26] running: generate_imagined_arm_progression_video.py [reach]
+[18:18:50]   done in 23s
+[18:18:50] running: generate_dream_video.py [grasp]
+[18:19:11]   done in 21s
+[18:19:11] running: generate_progression_video.py [grasp]
+[18:19:33]   done in 23s
+[18:19:33] running: generate_imagined_arm_video.py [grasp]
+[18:19:49]   done in 16s
+[18:19:49] running: generate_imagined_arm_progression_video.py [grasp]
+[18:20:13]   done in 24s
+[18:20:13] running: generate_dream_video.py [lift]
+[18:20:30]   done in 17s
+[18:20:30] running: generate_progression_video.py [lift]
+[18:20:48]   done in 18s
+[18:20:48] running: generate_imagined_arm_video.py [lift]
+[18:21:01]   done in 13s
+[18:21:01] running: generate_imagined_arm_progression_video.py [lift]
+[18:21:20]   done in 19s
+[18:21:20] === slideshow
+[18:21:20] running: train_openl slideshow [reach]
+[18:21:28]   done in 9s
+[18:21:28] running: eval_openl slideshow [reach]
+[18:21:39]   done in 11s
+[18:21:39] running: train_openl slideshow [grasp]
+[18:21:47]   done in 8s
+[18:21:47] running: eval_openl slideshow [grasp]
+[18:21:57]   done in 10s
+[18:21:57] running: train_openl slideshow [lift]
+[18:22:04]   done in 7s
+[18:22:04] running: eval_openl slideshow [lift]
+[18:22:12]   done in 8s
+[18:22:12] === timelapse
+[18:22:12] running: joint-position timelapse [reach]
+[18:22:45]   done in 33s
+[18:22:45] running: joint-position timelapse [grasp]
+[18:23:17]   done in 33s
+[18:23:17] running: joint-position timelapse [lift]
+[18:23:42]   done in 25s
+[18:23:43] wrote policy_test.png
+[18:23:43] wrote cube_dragged_toward_base.png
+[18:23:43] finished

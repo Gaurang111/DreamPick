@@ -1,0 +1,42 @@
+{
+ "141000": {
+  "episodes": 200,
+  "held_share": 0.001975,
+  "ends_holding": 0.0,
+  "reached_5cm": 0.055,
+  "avg_best_lift_cm": 3.1209124199766496,
+  "pinching_share": 0.81625,
+  "cube_ends_far": 0.06,
+  "avg_return": 877.145912051641
+ },
+ "151000": {
+  "episodes": 200,
+  "held_share": 0.006450000000000001,
+  "ends_holding": 0.0,
+  "reached_5cm": 0.09,
+  "avg_best_lift_cm": 3.478246796260671,
+  "pinching_share": 0.8007,
+  "cube_ends_far": 0.095,
+  "avg_return": 813.3089921049061
+ },
+ "241000": {
+  "episodes": 200,
+  "held_share": 0.7991999999999999,
+  "ends_holding": 0.9,
+  "reached_5cm": 0.95,
+  "avg_best_lift_cm": 6.588350021393897,
+  "pinching_share": 0.832125,
+  "cube_ends_far": 0.055,
+  "avg_return": 2386.6564708761616
+ },
+ "291000": {
+  "episodes": 200,
+  "held_share": 0.8211499999999999,
+  "ends_holding": 0.91,
+  "reached_5cm": 0.96,
+  "avg_best_lift_cm": 6.956483360325904,
+  "pinching_share": 0.846575,
+  "cube_ends_far": 0.055,
+  "avg_return": 2474.979218827624
+ }
+}

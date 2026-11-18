@@ -1,0 +1,109 @@
+<mujoco model="so101_pick_cube_scene">
+  <!-- Pulls in the official SO101 arm (so101_new_calib_camera.xml), meshes, joints,
+       and actuators unchanged. MuJoCo merges matching top-level sections (worldbody,
+       asset, etc.) from the included file into this one. -->
+  <include file="so101/so101_new_calib_camera.xml"/>
+
+  <statistic center="0.2 0 0.1" extent="0.6"/>
+
+  <visual>
+    <headlight ambient="0.25 0.25 0.25" diffuse="0.3 0.3 0.3" specular="0.05 0.05 0.05"/>
+    <global offwidth="2560" offheight="1440"/>
+  </visual>
+
+  <asset>
+    <!-- Matches the user's real ArtAt A2 self-healing cutting mat (61x46cm):
+         green with a 1cm grid and angle-protractor lines baked into the image. -->
+    <texture type="2d" name="table_tex" file="textures/cutting_mat.png"/>
+    <material name="table_mat" texture="table_tex" texrepeat="1 1" reflectance="0.0"/>
+    <!-- Plain wood grain, no markings - matches the user's real wooden cube's
+         unmarked faces. Applied the same on every face of the rounded mesh. -->
+    <texture type="2d" name="wood_tex" file="textures/wood_plain.png"/>
+    <material name="cube_mat" texture="wood_tex" specular="0.15" shininess="0.2"/>
+    <!-- Rounded-edge cube mesh: MuJoCo's box primitive has sharp edges only,
+         so the visual shape is a real mesh (see make_rounded_cube.py), scaled
+         to the cube's 1.5cm half-extent. Physics still uses a plain box
+         (below) for cheap/accurate collision. -->
+    <mesh name="rounded_cube" file="meshes/rounded_cube.obj" scale="0.015 0.015 0.015"/>
+  </asset>
+
+  <!-- The cube meets the gripper only through the grasp pads (see fixed_jaw_pad in
+       so101_new_calib_camera.xml): the jaw meshes' convex hulls fill the gap between
+       the jaws and would wedge the cube. Each pad also overlaps the other jaw's hull,
+       so those pairs are excluded too; the pads still touch each other when closed. -->
+  <contact>
+    <exclude body1="gripper" body2="cube"/>
+    <exclude body1="moving_jaw_so101_v1" body2="cube"/>
+    <exclude body1="gripper" body2="moving_jaw_pad"/>
+    <exclude body1="fixed_jaw_pad" body2="moving_jaw_so101_v1"/>
+  </contact>
+
+  <worldbody>
+    <!-- Lighting: one overhead soft light plus an angled fill light so the gripper
+         and cube are well lit from more than one direction (avoids harsh shadows
+         that would make the small 64x64 images hard to read). Kept modest since the
+         headlight above already adds camera-relative light on every render. -->
+    <light name="top_light" pos="0.2 0 0.9" dir="0 0 -1" diffuse="0.4 0.4 0.4" specular="0.05 0.05 0.05" castshadow="true"/>
+    <light name="fill_light" pos="-0.2 0.3 0.5" dir="0.3 -0.4 -0.6" diffuse="0.25 0.25 0.25" castshadow="false"/>
+
+    <!-- Table/mat surface: sized to match the user's real 61x46cm cutting mat.
+         Matching the mat's actual printed layout (see the ArtAt product
+         image and the user's desk photo): the protractor is centered on the
+         midpoint of a 61cm edge and opens across the 46cm depth - so X
+         (reach, forward from the arm) spans 46cm and Y (lateral, split
+         evenly on both sides of the arm) spans 61cm. The arm sits at X=0
+         (the near edge) and Y=0 (the lateral center), exactly where
+         cutting_mat.png's protractor fan converges (see
+         make_cutting_mat_v3.py). Top face sits exactly at z=0, where the
+         SO101 base body is rooted. -->
+    <body name="table" pos="0.23 0 -0.02">
+      <geom name="table_top" type="box" size="0.23 0.305 0.02" material="table_mat" friction="1.0 0.005 0.0001"/>
+    </body>
+
+    <!-- Aim point for viewer_cam below, roughly at the arm's working height rather
+         than the table surface - keeps the camera tilted up enough that the arm
+         has headroom instead of mostly framing empty tabletop. -->
+    <body name="view_target_ref" pos="0.15 0 0.09">
+      <inertial pos="0 0 0" mass="1e-6" diaginertia="1e-9 1e-9 1e-9"/>
+    </body>
+
+    <!-- Aim point for overhead_cam below: 20cm out from the base, 12cm up - the middle of the
+         arm and the cube's working area as seen from the side. -->
+    <body name="overhead_target_ref" pos="0.20 0 0.12">
+      <inertial pos="0 0 0" mass="1e-6" diaginertia="1e-9 1e-9 1e-9"/>
+    </body>
+
+    <!-- The pick target: a 3cm cube (the user's real wooden cube), free joint so it
+         can be lifted, light mass, friction high enough for the gripper's rubber-less
+         plastic jaws to hold it. Inertia is m*a^2/6 for a 20g, 3cm cube.
+         Split into a visual-only rounded mesh (what's rendered/observed) and an
+         invisible plain-box collision geom (what physics actually solves against) -
+         same visual/collision split the SO101 arm's own meshes already use. -->
+    <body name="cube" pos="0.22 0 0.015">
+      <freejoint name="cube_freejoint"/>
+      <inertial pos="0 0 0" mass="0.02" diaginertia="3e-6 3e-6 3e-6"/>
+      <geom type="mesh" mesh="rounded_cube" material="cube_mat" contype="0" conaffinity="0" group="2"/>
+      <geom name="cube_geom" type="box" size="0.015 0.015 0.015" rgba="0 0 0 0"
+            friction="1.2 0.01 0.0001" condim="4" solimp="0.95 0.99 0.001" solref="0.004 1"/>
+    </body>
+
+    <!-- "overhead_cam" (the name is kept; it feeds the observation key overhead_image):
+         the fixed camera, a SIDE VIEW from the arm's right, level with the middle of the
+         mat (23cm out from the base), 55cm to the side and 30.5cm up, aimed at the point
+         above, 50 degree vertical field of view (tilts down about 19 degrees). The arm is
+         seen in profile with the cube and about 82% of the mat in frame. Chosen by
+         measurement (scripts/camera_search.py, scripts/camera_compare_side.py,
+         docs/training_run_1/README.md section 10): from behind the arm, the arm hid the cube
+         as soon as the gripper reached it (0 cube pixels at the grasp). From here the cube
+         stays at 12+ pixels (of 4096) in every approach/grasp/carry pose across the start
+         zone and all six joints stay in frame. Fitting the WHOLE mat in the frame was also
+         tried (70-78cm out): it shrinks the cube to 7-9 pixels, so it was not used.
+         To use the policy on the real arm, mount the real camera at this position, aimed at
+         the same point. -->
+    <camera name="overhead_cam" pos="0.23 -0.55 0.305" mode="targetbody" target="overhead_target_ref" fovy="50"/>
+
+    <!-- Viewer-only camera: a nice diagonal 3/4 view for humans watching the arm
+         work. NOT part of the observation space - nothing reads frames from this. -->
+    <camera name="viewer_cam" pos="0.05 -0.55 0.4" mode="targetbody" target="view_target_ref" fovy="45"/>
+  </worldbody>
+</mujoco>

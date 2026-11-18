@@ -1,0 +1,7 @@
+# Install torch separately first (needs a special index for the CUDA build):
+#   pip install torch==2.4.1 --index-url https://download.pytorch.org/whl/cu121
+# Then install the rest of this file normally:
+#   pip install -r requirements-dreamer.txt
+tensorboard==2.21.0
+ruamel.yaml==0.17.4
+moviepy==1.0.3

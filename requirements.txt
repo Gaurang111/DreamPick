@@ -1,0 +1,7 @@
+mujoco==3.2.6
+gymnasium==0.29.1
+numpy==1.26.4
+imageio==2.36.1
+imageio-ffmpeg==0.5.1
+pillow==11.0.0
+pytest==8.3.4

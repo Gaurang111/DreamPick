@@ -1,0 +1,53 @@
+I trained a robotic arm to pick up a cube. It failed.
+
+17 hours. About 300,000 training steps. One laptop GPU (RTX 3070Ti).
+And the arm never learned to lift the cube.
+
+Here is what I built, and what went wrong.
+
+THE SETUP
+→ A simulated copy of my desk: same cutting mat, same 3 cm wooden cube, same arm
+→ A world model (DreamerV3) that learns to imagine what happens next
+→ Three stages of reward: reach the cube, pinch it, lift it 5 cm
+
+WHAT WORKED
+→ Reach: within 2 cm of the cube 86% of the time
+→ Grasp: cube pinched between both jaws 88% of the time
+
+WHAT DID NOT
+→ Lift: 0 of 20 test runs reached 5 cm. The best was 2.7 cm.
+
+WHY IT FAILED
+
+1. The arm cheated
+Every policy learned to pull the cube in toward its own base and hold it there.
+From 22 cm out to about 10 cm in two seconds.
+That kept the reach and grip reward with no lifting needed.
+My reward paid only 0.4 per centimetre lifted, so lifting was not worth the effort.
+
+2. The camera could not see the cube
+The overhead camera sat behind the arm.
+Once the arm reached the cube, the cube vanished from view. 0 pixels.
+I only found out after training, by measuring what the camera actually saw.
+
+3. My tests were too small to trust
+Each check used 3 test episodes.
+Scores jumped between 225 and 473 from one check to the next.
+I could not tell progress from luck, so early stopping was close to a coin flip.
+
+4. My pipeline had holes
+→ A bug meant early stopping could never trigger
+→ A reward flaw that I caught partway through the lift stage
+→ Training was killed when the session that launched it ended, and I lost 7 hours
+
+WHAT CHANGES IN THE RETRAIN
+→ Camera position chosen by measuring 360 candidates against the cube and every joint
+→ A much steeper lift reward, plus a penalty for dragging the cube in
+→ The cube starts in a random spot instead of the same one every time
+→ 10 test episodes per check instead of 3, and the best weights are kept, not the last
+→ Training runs independently of the session that starts it
+
+The biggest lesson: a high reward was hiding the real behaviour.
+Watching the arm for ten seconds showed me what the charts never did.
+
+#Robotics #ReinforcementLearning #WorldModels #DreamerV3 #MuJoCo #MachineLearning #SimToReal
