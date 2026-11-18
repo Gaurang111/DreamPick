@@ -160,3 +160,5 @@ One-time calibration (camera to arm frame, joint offsets) is in `scripts\phase1_
 - SO-101 arm design and MJCF model: [TheRobotStudio/SO-ARM100](https://github.com/TheRobotStudio/SO-ARM100) (Apache 2.0)
 - DreamerV3: Hafner et al., *Mastering Diverse Domains through World Models*; PyTorch port: [NM512/dreamerv3-torch](https://github.com/NM512/dreamerv3-torch) (MIT)
 - Real arm control: [LeRobot](https://github.com/huggingface/lerobot)
+
+
