@@ -162,3 +162,7 @@ One-time calibration (camera to arm frame, joint offsets) is in `scripts\phase1_
 - Real arm control: [LeRobot](https://github.com/huggingface/lerobot)
 
 
+
+## License
+
+MIT, see [LICENSE](LICENSE). Vendored parts keep their own licenses: the SO-101 model in `assets/so101` (Apache 2.0) and the DreamerV3 port in `src/dreamer` (MIT, see `src/dreamer/LICENSE_DREAMERV3_TORCH.txt`).
